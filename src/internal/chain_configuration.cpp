@@ -13,7 +13,7 @@
 using json = nlohmann::json;
 
 namespace blocksci {
-    
+
     void to_json(json& j, const ChainConfiguration& p) {
         j = json{
             {"coinName", p.coinName},
@@ -24,7 +24,7 @@ namespace blocksci {
             {"segwitActivationHeight", p.segwitActivationHeight}
         };
     }
-    
+
     void from_json(const json& j, ChainConfiguration& p) {
         j.at("coinName").get_to(p.coinName);
         std::string dataDir;
@@ -35,18 +35,18 @@ namespace blocksci {
         j.at("segwitPrefix").get_to(p.segwitPrefix);
         j.at("segwitActivationHeight").get_to(p.segwitActivationHeight);
     }
-    
+
     void to_json(json& j, const ChainRPCConfiguration& p) {
         j = json{{"username", p.username}, {"password", p.password}, {"address", p.address}, {"port", p.port}};
     }
-    
+
     void from_json(const json& j, ChainRPCConfiguration& p) {
         j.at("username").get_to(p.username);
         j.at("password").get_to(p.password);
         j.at("address").get_to(p.address);
         j.at("port").get_to(p.port);
     }
-    
+
     ChainConfiguration ChainConfiguration::dash(const std::string &chainDir) {
         return {
             "dash",
@@ -57,7 +57,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::dashTestnet(const std::string &chainDir) {
         return {
             "dash_testnet",
@@ -68,7 +68,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::litecoin(const std::string &chainDir) {
         return {
             "litecoin",
@@ -79,7 +79,7 @@ namespace blocksci {
             1201536
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::litecoinTestnet(const std::string &chainDir) {
         return {
             "litecoin_testnet",
@@ -90,7 +90,7 @@ namespace blocksci {
             83278 // Guess based on block explorer
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::litecoinRegtest(const std::string &chainDir) {
         return {
             "litecoin_regtest",
@@ -101,7 +101,7 @@ namespace blocksci {
             0
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::zcash(const std::string &chainDir) {
         return {
             "zcash",
@@ -112,7 +112,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::zcashTestnet(const std::string &chainDir) {
         return {
             "zcash_testnet",
@@ -123,7 +123,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::namecoin(const std::string &chainDir) {
         return {
             "namecoin",
@@ -134,7 +134,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // Not activated yet, but planned
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::namecoinTestnet(const std::string &chainDir) {
         return {
             "namecoin_testnet",
@@ -145,7 +145,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // Not activated yet, but planned
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoinRegtest(const std::string &chainDir) {
         return {
             "bitcoin_regtest",
@@ -156,7 +156,7 @@ namespace blocksci {
             0
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoin(const std::string &chainDir) {
         return {
             "bitcoin",
@@ -167,7 +167,7 @@ namespace blocksci {
             481824
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoinTestnet(const std::string &chainDir) {
         return {
             "bitcoin_testnet",
@@ -178,7 +178,7 @@ namespace blocksci {
             834624
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoinCashRegtest(const std::string &chainDir) {
         return {
             "bitcoin_cash_regtest",
@@ -189,7 +189,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoinCash(const std::string &chainDir) {
         return {
             "bitcoin_cash",
@@ -200,7 +200,7 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
     ChainConfiguration ChainConfiguration::bitcoinCashTestnet(const std::string &chainDir) {
         return {
             "bitcoin_cash_testnet",
@@ -211,7 +211,29 @@ namespace blocksci {
             std::numeric_limits<BlockHeight>::max() // No segwit support
         };
     }
-    
+
+    ChainConfiguration ChainConfiguration::zcoin(const std::string &chainDir) {
+        return {
+            "zcoin",
+            chainDir,
+            {1, 82},
+            {1, 7},
+            "NONE",
+            std::numeric_limits<BlockHeight>::max() // No segwit support
+        };
+    }
+
+    ChainConfiguration ChainConfiguration::zcoinTestnet(const std::string &chainDir) {
+        return {
+            "zcoin_testnet",
+            chainDir,
+            {1, 65},
+            {1, 178},
+            "NONE",
+            std::numeric_limits<BlockHeight>::max() // No segwit support
+        };
+    }
+
     ChainRPCConfiguration ChainRPCConfiguration::bitcoin(const std::string &username, const std::string &password) {
         return {
             username,
@@ -220,7 +242,7 @@ namespace blocksci {
             8332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::bitcoinTestnet(const std::string &username, const std::string &password) {
         return {
             username,
@@ -229,7 +251,7 @@ namespace blocksci {
             18332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::bitcoinCash(const std::string &username, const std::string &password) {
         return {
             username,
@@ -238,7 +260,7 @@ namespace blocksci {
             8332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::bitcoinCashTestnet(const std::string &username, const std::string &password) {
         return {
             username,
@@ -247,7 +269,7 @@ namespace blocksci {
             18332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::litecoin(const std::string &username, const std::string &password) {
         return {
             username,
@@ -256,7 +278,7 @@ namespace blocksci {
             9332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::litecoinTestnet(const std::string &username, const std::string &password) {
         return {
             username,
@@ -265,7 +287,7 @@ namespace blocksci {
             19332
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::dash(const std::string &username, const std::string &password) {
         return {
             username,
@@ -274,7 +296,7 @@ namespace blocksci {
             9998
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::dashTestnet(const std::string &username, const std::string &password) {
         return {
             username,
@@ -283,7 +305,7 @@ namespace blocksci {
             19998
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::namecoin(const std::string &username, const std::string &password) {
         return {
             username,
@@ -292,7 +314,7 @@ namespace blocksci {
             8336
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::namecoinTestnet(const std::string &username, const std::string &password) {
         return {
             username,
@@ -301,7 +323,7 @@ namespace blocksci {
             18336
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::zcash(const std::string &username, const std::string &password) {
         return {
             username,
@@ -310,13 +332,31 @@ namespace blocksci {
             8232
         };
     }
-    
+
     ChainRPCConfiguration ChainRPCConfiguration::zcashTestnet(const std::string &username, const std::string &password) {
         return {
             username,
             password,
             "127.0.0.1",
             18232
+        };
+    }
+
+    ChainRPCConfiguration ChainRPCConfiguration::zcoin(const std::string &username, const std::string &password) {
+        return {
+            username,
+            password,
+            "127.0.0.1",
+            8888
+        };
+    }
+
+    ChainRPCConfiguration ChainRPCConfiguration::zcoinTestnet(const std::string &username, const std::string &password) {
+        return {
+            username,
+            password,
+            "127.0.0.1",
+            18888
         };
     }
 }

@@ -104,7 +104,7 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
                 index = ChainIndex<ParserTag>{};
             }
         }
-        
+
         index.update(config, maxBlockNum);
         auto blocks = index.generateChain(maxBlockNum);
         std::ofstream of(config.blockListPath().str(), std::ios::binary);
@@ -134,21 +134,21 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
             std::cout << "Previously parsed chain is on a different fork than the longest chain. You may need to reparse. Aborting." << std::endl;
             exit(1);
         }
-        
+
         std::cout << "Starting with chain of " << oldChain.blockCount() << " blocks" << std::endl;
         std::cout << "Adding " << static_cast<blocksci::BlockHeight>(chainBlocks.size()) - splitPoint << " blocks" << std::endl;
-        
+
         return splitPoint;
     }();
 
     std::vector<BlockInfo<ParserTag>> blocksToAdd{chainBlocks.begin() + static_cast<int>(splitPoint), chainBlocks.end()};
-    
+
     std::ios::sync_with_stdio(false);
-    
+
     if (blocksToAdd.size() == 0) {
         return {};  // No new blocks since the last update
     }
-    
+
     uint32_t startingTxCount;
     uint64_t startingInputCount;
     uint64_t startingOutputCount;
@@ -158,9 +158,9 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
         startingInputCount = chain.inputCount();
         startingOutputCount = chain.outputCount();
     }
-    
+
     auto maxBlockHeight = blocksToAdd.back().height;
-    
+
     uint32_t totalTxCount = 0;
     uint32_t totalInputCount = 0;
     uint32_t totalOutputCount = 0;
@@ -175,11 +175,11 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
     UTXOAddressState utxoAddressState;
     AddressState addressState{config.addressPath(), hashDb};
     UTXOScriptState utxoScriptState;
-    
+
     utxoAddressState.unserialize(config.utxoAddressStatePath().str());
     utxoState.unserialize(config.utxoCacheFile().str());
     utxoScriptState.unserialize(config.utxoScriptStatePath().str());
-    
+
     std::vector<blocksci::RawBlock> newBlocks;
     auto it = blocksToAdd.begin();
     auto end = blocksToAdd.end();
@@ -192,7 +192,7 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
             newTxCount += it->nTx;
             ++it;
         }
-        
+
         decltype(blocksToAdd) nextBlocks{prev, it};
 
         auto blocks = processor.addNewBlocks(config, nextBlocks, utxoState, utxoAddressState, addressState, utxoScriptState);
@@ -203,7 +203,7 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
         // This step represents the "Back linking transactions" step of the parser output messages.
         backUpdateTxes(config);
     }
-    
+
     utxoAddressState.serialize(config.utxoAddressStatePath().str());
     utxoState.serialize(config.utxoCacheFile().str());
     utxoScriptState.serialize(config.utxoScriptStatePath().str());
@@ -213,22 +213,22 @@ std::vector<blocksci::RawBlock> updateChain(const ParserConfiguration<ParserTag>
 void updateHashDB(const ParserConfigurationBase &config, HashIndexCreator &db) {
     blocksci::ChainAccess chain{config.dataConfig.chainDirectory(), config.dataConfig.blocksIgnored, config.dataConfig.errorOnReorg};
     blocksci::ScriptAccess scripts{config.dataConfig.scriptsDirectory()};
-    
+
     blocksci::State updateState{chain, scripts};
     std::cout << "Updating hash index\n";
-    
+
     db.runUpdate(updateState);
 }
 
 void updateAddressDB(const ParserConfigurationBase &config) {
     blocksci::ChainAccess chain{config.dataConfig.chainDirectory(), config.dataConfig.blocksIgnored, config.dataConfig.errorOnReorg};
     blocksci::ScriptAccess scripts{config.dataConfig.scriptsDirectory()};
-    
+
     blocksci::State updateState{chain, scripts};
     AddressDB db(config, config.dataConfig.addressDBFilePath());
-    
+
     std::cout << "Updating address index\n";
-    
+
     db.runUpdate(updateState);
 }
 
@@ -242,16 +242,16 @@ ParserConfigurationBase getBaseConfig(const filesystem::path &configPath) {
 void updateChain(const filesystem::path &configFilePath, bool fullParse) {
     auto jsonConf = blocksci::loadConfig(configFilePath.str());
     blocksci::checkVersion(jsonConf);
-    
+
     blocksci::ChainConfiguration chainConfig = jsonConf.at("chainConfig");
     blocksci::DataConfiguration dataConfig{configFilePath.str(), chainConfig, true, 0};
-    
+
     ParserConfigurationBase config{dataConfig};
     HashIndexCreator hashDb(config, config.dataConfig.hashIndexFilePath());
-    
+
     auto parserConf = jsonConf.at("parser");
     blocksci::BlockHeight maxBlock = parserConf.at("maxBlockNum");
-    
+
     std::vector<blocksci::RawBlock> newBlocks;
     if (parserConf.find("disk") != parserConf.end()) {
         ChainDiskConfiguration diskConfig = parserConf.at("disk");
@@ -264,7 +264,7 @@ void updateChain(const filesystem::path &configFilePath, bool fullParse) {
     } else {
         throw std::runtime_error("Must provide either rpc or disk parsing settings");
     }
-    
+
     // It'd be nice to do this after the indexes are updated, but they currently depend on the chain being fully updated
     {
         // Write new RawBlock blocks from the updateChain() method to the blockFile
@@ -273,7 +273,7 @@ void updateChain(const filesystem::path &configFilePath, bool fullParse) {
             blockFile.write(block);
         }
     }
-    
+
     if (fullParse) {
         updateHashDB(config, hashDb);
         updateAddressDB(config);
@@ -281,23 +281,23 @@ void updateChain(const filesystem::path &configFilePath, bool fullParse) {
 }
 
 int main(int argc, char * argv[]) {
-    
+
     //    blocksci_parser
     //    --config /hkalodner/bitcointest.json
     //    generate-config
     //    --coin-type bitcoin
     //    --data-directory /Users/hkalodner/bitcoin-samp
     //    --coin-directory /Users/hkalodner/Library/Application\ Support/Bitcoin
-    
+
     enum class mode {generateConfig, update, updateCore, updateIndexes, updateHashIndex, updateAddressIndex, compactIndexes, help, doctor};
     mode selected = mode::help;
-    
+
     bool enableRPC = false;
     std::string username;
     std::string password;
     std::string address = "NOTSET";
     int port = -1;
-    
+
     auto rpcOptions = (
         clipp::option("--rpc").set(enableRPC) & (
         clipp::value("username", username) % "RPC username",
@@ -305,7 +305,7 @@ int main(int argc, char * argv[]) {
         (clipp::option("--address") & clipp::value("address", address)) % "RPC address",
         (clipp::option("--port") & clipp::value("port", port)) % "RPC port"
     ).doc("RPC options"));
-    
+
     bool enableDisk = false;
     std::string coinDirectoryString;
     auto fileOptions = (
@@ -313,11 +313,11 @@ int main(int argc, char * argv[]) {
             clipp::value("coin directory", coinDirectoryString) % "Path to cryptocurrency directory"
         )).doc("File parser options");
 
-    
+
     std::string coinType;
     int maxBlockNum = 0;
     std::string dataDirectory;
-    
+
     std::stringstream coinTypes;
     coinTypes
     << "coin type (supported modes)\n"
@@ -336,6 +336,8 @@ int main(int argc, char * argv[]) {
     << "                        namecoin_testnet(rpc)\n"
     << "                        zcash(rpc)\n"
     << "                        zcash_testnet(rpc)\n"
+    << "                        zcoin(rpc)\n"
+    << "                        zcoin_testnet(rpc)\n"
     << "                        custom"
     ;
     auto configOptions = (
@@ -345,7 +347,7 @@ int main(int argc, char * argv[]) {
           fileOptions,
           rpcOptions
     ) % "Configuration options";
-    
+
     auto generateConfigCommand = clipp::command("generate-config").set(selected,mode::generateConfig) % "Create new BlockSci configuration";
     auto updateCommand = clipp::command("update").set(selected,mode::update) % "Update all BlockSci data";
     auto updateCoreCommand = clipp::command("core-update").set(selected,mode::updateCore) % "Update just the core BlockSci data (excluding indexes)";
@@ -354,14 +356,14 @@ int main(int argc, char * argv[]) {
     auto hashIndexUpdateCommand = clipp::command("hash-index-update").set(selected,mode::updateHashIndex) % "Update hash index to latest state";
     auto compactIndexesCommand = clipp::command("compact-indexes").set(selected, mode::compactIndexes) % "Compact indexes to speed up blockchain construction";
     auto doctorCommand = clipp::command("doctor").set(selected,mode::doctor) % "Diagnose issues with BlockSci or the provided config file.";
-    
+
     std::string configFilePathString;
     auto configFileOpt = clipp::value("config file", configFilePathString) % "Path to config file";
-    
+
     auto commands = (generateConfigCommand, configOptions) | updateCommand | updateCoreCommand | indexUpdateCommand | addressIndexUpdateCommand | hashIndexUpdateCommand | compactIndexesCommand | doctorCommand;
-    
+
     auto cli = (configFileOpt, commands);
-    
+
     auto res = parse(argc, argv, cli);
     if (res.any_error()) {
 //        clipp::debug::print(std::cerr, res);
@@ -384,18 +386,18 @@ int main(int argc, char * argv[]) {
             blocksci::ChainConfiguration chainConfig;
             ChainDiskConfiguration diskConfig;
             blocksci::ChainRPCConfiguration rpcConfig;
-            
+
             filesystem::path dataDirectoryPath{dataDirectory};
             if (!dataDirectoryPath.exists()) {
                 filesystem::create_directory(dataDirectoryPath);
             }
-            
+
             dataDirectory = dataDirectoryPath.make_absolute().str();
-            
+
             if (enableDisk) {
                 coinDirectoryString = filesystem::path{coinDirectoryString}.make_absolute().str();
             }
-            
+
             if (coinType == "bitcoin") {
                 chainConfig = blocksci::ChainConfiguration::bitcoin(dataDirectory);
                 diskConfig = ChainDiskConfiguration::bitcoin(coinDirectoryString);
@@ -447,25 +449,31 @@ int main(int argc, char * argv[]) {
             } else if (coinType == "zcash_testnet") {
                 chainConfig = blocksci::ChainConfiguration::zcashTestnet(dataDirectory);
                 rpcConfig = blocksci::ChainRPCConfiguration::zcashTestnet(username, password);
+            } else if (coinType == "zcoin") {
+                chainConfig = blocksci::ChainConfiguration::zcoin(dataDirectory);
+                rpcConfig = blocksci::ChainRPCConfiguration::zcoin(username, password);
+            } else if (coinType == "zcoin_testnet") {
+                chainConfig = blocksci::ChainConfiguration::zcoinTestnet(dataDirectory);
+                rpcConfig = blocksci::ChainRPCConfiguration::zcoinTestnet(username, password);
             } else if (coinType == "custom") {
-                
+
             } else {
                 std::cout << "Selected invalid coin type\n";
                 return 0;
             }
-            
+
             chainConfig.coinName = coinType;
             chainConfig.dataDirectory = dataDirectory;
             rpcConfig.username = username;
             rpcConfig.password = password;
-            
+
             if(address != "NOTSET") {
                 rpcConfig.address = address;
             }
             if (port != -1) {
                 rpcConfig.port = port;
             }
-            
+
             json parser = json::object({{"maxBlockNum", maxBlockNum}});
             if (enableDisk) {
                 parser["disk"] = diskConfig;
@@ -473,16 +481,16 @@ int main(int argc, char * argv[]) {
             if (enableRPC) {
                 parser["rpc"] = rpcConfig;
             }
-            
+
             json jsonConf = {
                 {"version", blocksci::dataVersion},
                 {"chainConfig", chainConfig},
                 {"parser", parser}
             };
-            
+
             std::ofstream rawConf(configFilePath.str());
             rawConf << std::setw(4) << jsonConf;
-            
+
             break;
         }
         case mode::update:
@@ -529,7 +537,7 @@ int main(int argc, char * argv[]) {
             unlockDataDirectory(config);
             break;
         }
-            
+
         case mode::compactIndexes: {
             auto config = getBaseConfig(configFilePath);
             lockDataDirectory(config);
@@ -563,6 +571,6 @@ int main(int argc, char * argv[]) {
             break;
         }
     }
-    
+
     return 0;
 }
